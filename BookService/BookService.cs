@@ -66,7 +66,7 @@ namespace BookService
                 logger.Error($"Faild to add new item into books storage , item is null\n {new StackTrace()}");
                 throw new ArgumentNullException();
             }
-            var res =booksStorage.Add(item);
+            var res = booksStorage.Add(item);
             logger.Info($"Added {item} with {res} result");
         }
 

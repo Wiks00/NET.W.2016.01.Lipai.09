@@ -6,24 +6,60 @@ using System.Threading.Tasks;
 
 namespace BookLogic
 {
+    [Serializable]
     public class Book : IEquatable<Book>,IComparable<Book>,IComparable
     {
-        public double Price { get; }
-        public string Title { get; }
-        public string Author { get; }
-        public DateTime ReleaseDate { get; }
+
+        private double price;
+        private string title;
+        private string author;
+        private DateTime releaseDate;
+
+        public double Price
+        {
+            get { return price; }
+
+            set
+            {
+                if (value < 0)
+                    throw new ArgumentOutOfRangeException();
+
+                price = value;
+            }
+        }
+
+        public string Title
+        {
+            get { return title; }
+
+            set
+            {
+                if (string.IsNullOrEmpty(value) || !char.IsLetterOrDigit(value, 0))
+                    throw new ArgumentException();
+
+                title = value;
+            }
+        }
+
+        public string Author
+        {
+            get { return author; }
+
+            set
+            {
+                if (string.IsNullOrEmpty(value) || !char.IsLetterOrDigit(value, 0))
+                    throw new ArgumentException();
+
+                author = value;
+            }
+        }
+
+        public DateTime ReleaseDate { get; set; }
+
+        public Book() { }
 
         public Book(double price, string title, string author, DateTime releasDate)
         {
-            if(price <0)
-                throw new ArgumentOutOfRangeException();
-
-            if(string.IsNullOrEmpty(title) || !char.IsLetterOrDigit(title,0) || string.IsNullOrEmpty(author) || !char.IsLetterOrDigit(author, 0))
-                throw new ArgumentException();
-
-            if(ReferenceEquals(releasDate,null))
-                throw new ArgumentNullException();
-
             Price = price;
             Title = title;
             Author = author;

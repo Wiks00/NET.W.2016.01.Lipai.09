@@ -43,6 +43,7 @@
     <Compile Include="BinaryBookStorage.cs" />
     <Compile Include="IBookStorage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="XmlBookStorage.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BookLogic\BookLogic.csproj">

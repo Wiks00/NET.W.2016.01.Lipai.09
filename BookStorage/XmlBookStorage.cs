@@ -1,34 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using BookLogic;
 using LogLogic;
 
 namespace BookStorage
 {
-    public class BinaryBookStorage : IBookStorage
+    public class XmlBookStorage : IBookStorage
     {
         private readonly ILogAdapter logger;
         public string FilePath { get; }
 
-        public BinaryBookStorage() : this(NLogAdapter.Logger, "Books.txt")
+        public XmlBookStorage() : this(NLogAdapter.Logger, "Books.xml")
         {
         }
 
-        public BinaryBookStorage(string filePath) : this(NLogAdapter.Logger, filePath)
+        public XmlBookStorage(string filePath) : this(NLogAdapter.Logger, filePath)
         {
         }
 
-        public BinaryBookStorage(ILogAdapter logger) : this(logger, "Books.txt")
+        public XmlBookStorage(ILogAdapter logger) : this(logger, "Books.xml")
         {
         }
 
-        public BinaryBookStorage(ILogAdapter logger, string filePath)
+        public XmlBookStorage(ILogAdapter logger, string filePath)
         {
             if (string.IsNullOrEmpty(filePath))
                 throw new AggregateException();
@@ -39,27 +38,23 @@ namespace BookStorage
 
         public void SaveBooks(IEnumerable<Book> books)
         {
-            if(ReferenceEquals(books,null))
+            if (ReferenceEquals(books, null))
                 throw new ArgumentNullException();
 
             try
             {
-                using (var writer = new BinaryWriter(File.Open(FilePath, FileMode.OpenOrCreate, FileAccess.Write)))
+                using (var fileStream = new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.Write))
                 {
-                    foreach (var book in books)
-                    {
-                        writer.Write(book.Title);
-                        writer.Write(book.Author);
-                        writer.Write(book.ReleaseDate.ToString("d"));
-                        writer.Write(book.Price);
-                    }
+                    new XmlSerializer(typeof(List<Book>)).Serialize(fileStream, new List<Book>(books));
                 }
+
                 logger.Trace($"Saved {books.Count()} books to {Environment.CurrentDirectory}'\'{FilePath}");
             }
+
             catch (IOException ex)
             {
                 logger.Error($"error {ex.GetType()} in\n {ex.StackTrace}\n whith message {ex.Message}");
-                throw new Exception("Can't save data",ex);
+                throw new Exception("Can't save data", ex);
             }
         }
 
@@ -69,18 +64,16 @@ namespace BookStorage
 
             try
             {
-                using (var reader = new BinaryReader(File.Open(FilePath, FileMode.Open, FileAccess.Read)))
+                using (var fileStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read))
                 {
-                    while (reader.BaseStream.Position < reader.BaseStream.Length)
-                    {
-                        var title = reader.ReadString();
-                        var author = reader.ReadString();
-                        var releaseDate = Convert.ToDateTime(reader.ReadString());
-                        var price = reader.ReadDouble();
+                    XmlSerializer xmlData = new XmlSerializer(typeof(List<Book>));
 
-                        bookStorage.Add(new Book(price,title,author,releaseDate));
-                    }
+                    //while (fileStream.Position < fileStream.Length)
+                    //{
+                        bookStorage = (List<Book>)xmlData.Deserialize(fileStream);
+                    //}
                 }
+
                 logger.Trace($"Added {bookStorage.Count} books from {Environment.CurrentDirectory}'\'{FilePath}");
             }
             catch (IOException ex)
